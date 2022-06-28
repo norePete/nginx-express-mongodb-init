@@ -45,6 +45,17 @@ app.get('/:db/:item', (req, res) => {
 //DELETE endpoints 
 
 
+
+
+
+
+//SUBSCRIPTION SERVICE
+app.post('/subscribe/:evt', (req, res) => {
+	subscribe(req.params.evt);
+	res.sendStatus(200);
+});
+
+
 const port = 5000;
 app.listen(`${port}`, () => {
   console.log("listening on port ", port);
