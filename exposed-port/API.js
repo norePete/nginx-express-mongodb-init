@@ -49,3 +49,33 @@ function private_insert(dbname, collection, insertJson, client=MongoClient, url=
 		});
 	});
 }
+
+//there could be ten different update functions
+//unless there is a way to generalize by passing in a filtering function
+//or query object 
+function update_particular(){
+	private_update(dbname, collection, other, other);
+}
+function private_update_particular(
+	dbname, 
+	collection, 
+	other, 
+	other, 
+	client=MongoClient, 
+	url=defaultUrl)
+{
+
+	client.connect(url, function(err, db) {
+		if (err) throw err;
+		let current_db = db.db(dbname);
+
+		//somehow retrieve and append
+		//each implementation of this update function will be unique
+		current_db
+			.collection(collection)
+		//
+
+		db.close();
+	});
+
+}

@@ -27,10 +27,23 @@ app.post('/:db/:col/:key', (req, res) => {
 //GET endpoints
 app.get('/', (req, res) => {
   console.log("get endpoint hit");
-  res.send(200);
+  res.sendStatus(200);
+});
+app.get('/:db', (req, res) => {
+	API.query(req.params.db)
+	res.sendStatus(200);
+	//send back result
+	//...object binary encoding/decoding or json
+});
+app.get('/:db/:item', (req, res) => {
+	API.query(req.params.db, req.params.item)
+	res.sendStatus(200);
+	//send back result
 });
 
+
 //DELETE endpoints 
+
 
 const port = 5000;
 app.listen(`${port}`, () => {

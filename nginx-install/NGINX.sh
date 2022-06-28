@@ -1,6 +1,8 @@
 #!/bin/bash
 
 DOMAIN="example.com"
+your_server_ip="45.76.127.26" 
+port="5000"
 sudo apt update
 sudo apt install nginx
 sudo ufw app list
@@ -28,5 +30,21 @@ sudo echo "}" >> /etc/nginx/sites-available/$DOMAIN
 sudo ln -s /etc/nginx/sites-available/$DOMAIN /etc/nginx/sites-enabled/
 
 sudo cp nginx.conf /etc/nginx/nginx.conf
+sudo cp reverse-proxy.conf /etc/nginx/sites-available/reverse-proxy.conf
+sudo ln -s /etc/nginx/sites-available/reverse-proxy.conf /etc/nginx/sites-enabled/reverse-proxy.conf
+
+sudo echo "server {" >> /etc/nginx/conf.d/proxy.conf
+sudo echo "	listen 80;" >> /etc/nginx/conf.d/proxy.conf
+sudo echo "	server_name proxy.example.com;" >> /etc/nginx/conf.d/proxy.conf
+sudo echo "	location / {" >> /etc/nginx/conf.d/proxy.conf
+sudo echo "		proxy_pass http://$your_server_ip:$port" >> /etc/nginx/conf.d/proxy.conf
+sudo echo "		proxy_set_header Host \$host;" >> /etc/nginx/conf.d/proxy.conf
+sudo echo "		proxy_set_header X-Real-IP \$remote_addr;" >> /etc/nginx/conf.d/proxy.conf
+sudo echo "		proxy_set_header X-forwarded-For \$proxy_add_x_forwarded_for;" >> /etc/nginx/conf.d/proxy.conf
+sudo echo "		proxy_set_header X-Forwarded-Proto \$scheme;" >> /etc/nginx/conf.d/proxy.conf
+sudo echo "	}" >> /etc/nginx/conf.d/proxy.conf
+sudo echo "}" >> /etc/nginx/conf.d/proxy.conf
+
 sudo nginx -t
 sudo systemctl restart nginx
+
