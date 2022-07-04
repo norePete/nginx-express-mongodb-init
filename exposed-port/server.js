@@ -1,8 +1,11 @@
 const express = require('express');
+const { v4: uuidv4 } = require('uuid');
 const cors = require('cors');
+const app = express();
 
 const app = express();
 app.use(cors())
+app.use(express.json());
 
 //POST endpoints 
 app.post('/:db', (req, res) => {
@@ -15,10 +18,22 @@ app.post('/:db/:col', (req, res) => {
   res.sendStatus(200);
 });
 
-app.post('/:db/:col/:key', (req, res) => {
+app.post('/:db/:col/addRequest', (req, res) => {
+  let today = new Date();
+  let data = req.body;
+  let key = data.uuid;
+  let desc = data.description;
+  let author = data.author;
   let record = JSON.parse(`{
-	  id: ${req.params.key},
-	  data: "somehow get data from post body"
+	  id: ${key},
+    creation_date: ${today},
+    author: ${author},
+    description: ${desc},
+    status: "open",
+    updates: [{
+      text: "creation",
+      date: ${today}
+      }]
   }`)
   API.insert(req.params.db, req.params.col, record);
   res.sendStatus(200);
