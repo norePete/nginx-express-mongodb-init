@@ -1,42 +1,68 @@
 const express = require('express');
 const { v4: uuidv4 } = require('uuid');
 const cors = require('cors');
-const app = express();
+const { api } = require('./api');
 
 const app = express();
 app.use(cors())
 app.use(express.json());
 
+const dbname = "panama";
+const collection = "papers";
+const API = new api('mongodb://localhost:27017/'); 
+
 //POST endpoints 
-app.post('/:db', (req, res) => {
-  API.create(req.params.db);
+app.post('/new', (req, res) => {
+  console.log("new request created!")
+  API.insert(dbname, collection, req.body)
+  console.log(req.body.id)
+  console.log(req.body.quote)
+  console.log(req.body.source)
+  console.log(req.body.author)
+  console.log(req.body.year)
+  console.log(req.body.updateList)
+  console.log(req.body.urgency)
   res.sendStatus(200);
 });
-
-app.post('/:db/:col', (req, res) => {
-  API.createCollection(req.params.db, req.params.col);
+app.post('/status', (req, res) => {
+  console.log("status changed manually")
+  console.log(req.body)
   res.sendStatus(200);
 });
+app.post('/close', (req, res) => {
+  API.private_change_status(
+    dbname, 
+    collection, 
+    req.body.id, 
+    req.body.urgency
+  );
 
-app.post('/:db/:col/addRequest', (req, res) => {
-  let today = new Date();
-  let data = req.body;
-  let key = data.uuid;
-  let desc = data.description;
-  let author = data.author;
-  let record = JSON.parse(`{
-	  id: ${key},
-    creation_date: ${today},
-    author: ${author},
-    description: ${desc},
-    status: "open",
-    updates: [{
-      text: "creation",
-      date: ${today}
-      }]
-  }`)
-  API.insert(req.params.db, req.params.col, record);
+  console.log(req.body)
+  console.log("closed a request")
   res.sendStatus(200);
+});
+app.post('/update', (req, res) => {
+
+  API.update(
+    dbname, 
+    collection,
+    req.body.id, 
+    req.body.updateList, 
+    req.body.urgency)
+
+  console.log("update added")
+  console.log(req.body)
+  res.sendStatus(200);
+});
+app.get('/active', (req, res) => {
+  arrayOfJson = API.active_requests(dbname, collection);
+  res.body = JSON.stringify(arrayOfJson);
+  res.send();
+});
+app.get('/inactive', (req, res) => {
+  arrayOfJson = API.inactive_requests(dbname, collection);
+  res.body = JSON.stringify(arrayOfJson);
+  res.send();
 });
 
 //GET endpoints
