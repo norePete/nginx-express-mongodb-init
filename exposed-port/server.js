@@ -23,8 +23,10 @@ app.post('/new', (req, res) => {
   res.sendStatus(200);
 });
 app.post('/status', (req, res) => {
-  console.log("status changed manually")
-  console.log(req.body)
+  API.change_status(
+    req.body.id, 
+    req.body.urgency
+  );
   res.sendStatus(200);
 });
 app.post('/close', (req, res) => {

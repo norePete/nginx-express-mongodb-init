@@ -3,27 +3,27 @@
 const MongoClient = require('mongodb').MongoClient;
 const url = 'mongodb://localhost:27017';
 const client = new MongoClient(url);
-const dbname = 'myProject';
-const collectionName = 'test';
+const dbname = 'MAIN_DATABASE';
+const collectionName = 'REQUEST_COLLECTION';
 
 class api {
   constructor(){
   }
 
   // CREATE NEW DATABASE
-  create(dbname){ 
+  async create(dbname){ 
     client.connect();
     const collection = client.db(dbname).collection(collectionName);
   }
 
   // CREATE NEW COLLECTION 
-  createCollection() {
+  async createCollection() {
     client.connect();
     const collection = client.db(dbname).collection(collectionName);
   }
 
   // CREATE NEW DOCUMENT 
-  insert(insertJson) {
+  async insert(insertJson) {
     client.connect();
     const collection = client.db(dbname).collection(collectionName);
     try {
@@ -35,28 +35,43 @@ class api {
 
 
   //ACTIVE REQUESTS PUBLIC
-  active_requests(callback) {
+  async inactive_requests(callback) {
     client.connect();
     const collection = client.db(dbname).collection(collectionName);
-
+    const result = await collection.find({urgency : "closed"}).toArray();
+    callback(result);
   }
 
   //INACTIVE REQUESTS this.private
-  inactive_requests(callback) {
+  async active_requests(callback) {
     client.connect();
     const collection = client.db(dbname).collection(collectionName);
+    const result = await collection.find({
+      $or: [{urgency: "low"},{urgency: "medium"},{urgency: "high"}]
+    }).toArray();
+    callback(result);
   }
 
   //UPDATE
-  async update(uuid, updateList, urgency){
+  async update(uuid, newUpdateList, newStatus){
     client.connect();
     const collection = client.db(dbname).collection(collectionName);
+    await collection.updateOne(
+      {id: uuid},
+      { $set: 
+        { updateList: newUpdateList, urgency: newStatus}
+      } 
+    );
   }
 
   //CHANGE STATUS
-  async change_status(uuid, newStatus, callback) {
+  async change_status(uuid, newStatus ) {
     client.connect();
     const collection = client.db(dbname).collection(collectionName);
+    const result = await collection.updateOne(
+      {id: uuid},
+      { $set: {urgency: newStatus}}
+    );
   }
 
 
