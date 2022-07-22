@@ -7,14 +7,12 @@ const app = express();
 app.use(cors())
 app.use(express.json());
 
-const dbname = "testdatabase";
-const collection = "requests";
-const API = new api('mongodb://localhost:27017/'); 
+const API = new api(); 
 
 //POST endpoints 
 app.post('/new', (req, res) => {
   console.log("new request created!")
-  API.insert(dbname, collection, req.body)
+  API.insert(req.body)
   console.log(req.body.id)
   console.log(req.body.quote)
   console.log(req.body.source)
@@ -31,8 +29,6 @@ app.post('/status', (req, res) => {
 });
 app.post('/close', (req, res) => {
   API.change_status(
-    dbname, 
-    collection, 
     req.body.id, 
     req.body.urgency
   );
@@ -40,8 +36,6 @@ app.post('/close', (req, res) => {
 });
 app.post('/update', (req, res) => {
   let result = API.update(
-    dbname, 
-    collection,
     req.body.id, 
     req.body.updateList, 
     req.body.urgency)
@@ -59,14 +53,14 @@ app.get('/active', (req, res) => {
       console.log(state);
       response.send(state);
     };
-  API.active_requests(dbname, collection, sendData);
+  API.active_requests(sendData);
   });
 app.get('/inactive', (req, res) => {
   const sendData = (state, response=res) => {
       console.log(state);
       response.send(state);
     };
-  arrayOfJson = API.inactive_requests(dbname, collection, sendData);
+  API.inactive_requests(sendData);
 });
 
 const port = 5000;
