@@ -1,6 +1,9 @@
 //these are the bindings that correspond to CRUD operations on 
 //the mongoDB database that we are using for the persistence layer
 const MongoClient = require('mongodb').MongoClient;
+const url = 'mongodb://localhost:27017';
+const client = new MongoClient(url);
+const dbName = 'myProject';
 
 class api {
   constructor(url){
@@ -14,7 +17,7 @@ class api {
     client.connect(url, function(err, db) {
       if (err) throw err;
       console.log("database created!");
-      db.close();
+      
     });
   }
 
@@ -29,7 +32,7 @@ class api {
       current_db.createCollection(collection, function(err, res) {
         if (err) throw err;
         console.log("Collection created!");
-        db.close();
+        
       });
     });
   }
@@ -48,50 +51,62 @@ class api {
         .insertOne(jsonObj, function(err, res) {
           if (err) throw err; 
           console.log("1 document inserted");
-          db.close();
+          
       });
     });
   }
 
 
   //ACTIVE REQUESTS PUBLIC
-  active_requests(dbname, collection) {
-    let arrayOfRequests = this.private_active_requests(
+  active_requests(dbname, collection, callback) {
+      this.private_active_requests(
       dbname, 
-      collection);
-    return arrayOfRequests;
+      collection, 
+      callback);
   }
   //ACTIVE REQUESTS this.private
   private_active_requests(
     dbname, 
     collection, 
+    callback,
     client=MongoClient, 
     url=this.defaultUrl)
   {
-    let arrayOfRequests = [];
-    client.connect(url, function(err, db) {
+    client.connect(url, async function(err, db) {
+      let arrayOfRequests = []
       if (err) throw err;
       let current_db = db.db(dbname);
       //iterate over the entire collection
       //and append each document onto
       //the array which we will return
-      current_db
+      await current_db
         .collection(collection)
         //ignore closed requests
-        .find({ urgency: { $not: "closed" } })
+        .find({ urgency: { $not: { $regex: "closed"}}})
         .forEach(function(myDoc) {
-          arrayOfRequests.push(myDoc);
+          arrayOfRequests.push({
+              "quote": myDoc.quote
+            , "source": myDoc.source
+            , "author": myDoc.author
+            , "year": myDoc.year
+            , "updateDialog": myDoc.updateDialog
+            , "updateBuffer": myDoc.updateBuffer
+            , "changeStatusDialog": myDoc.changeStatusDialog
+            , "updateList": myDoc.updateList
+            , "urgency": myDoc.urgency
+            , "id": myDoc.id 
+            });
         });
-      db.close();
+      callback(arrayOfRequests);
     });
-    return arrayOfRequests;
   }
 
   //INACTIVE REQUESTS this.private
-  active_requests(dbname, collection) {
+  inactive_requests(dbname, collection) {
     let arrayOfRequests = this.private_inactive_requests(
       dbname, 
-      collection);
+      collection,
+      callback);
     return arrayOfRequests;
   }
   //INACTIVE REQUESTS this.private
@@ -101,23 +116,22 @@ class api {
     client=MongoClient, 
     url=this.defaultUrl)
   {
-    let arrayOfRequests = [];
-    client.connect(url, function(err, db) {
+    client.connect(url, async function(err, db) {
+      let arrayOfRequests = [];
       if (err) throw err;
       let current_db = db.db(dbname);
       //iterate over the entire collection
       //and append each document onto
       //the array which we will return
-      current_db
+      await current_db
         .collection(collection)
         //ignore closed requests
         .find({ urgency: "closed" })
         .forEach(function(myDoc) {
           arrayOfRequests.push(myDoc);
         });
-      db.close();
+      callback(arrayOfRequests);
     });
-    return arrayOfRequests;
   }
   //update status 
   //increment status
@@ -138,6 +152,7 @@ class api {
     url=this.defaultUrl)
   {
     client.connect(url, function(err, db) {
+
       if (err) throw err;
       let current_db = db.db(dbname);
       //modify the updates stored in the database
@@ -150,14 +165,14 @@ class api {
         {id: `${uuid}` }, 
         { $set: { urgency: `${urgency}` }} 
       );
-      db.close();
+
     });
   }
 
 
   //CHANGE STATUS
-  change_status(dbname, collection, uuid, new_status) {
-    this.private_change_status(dbname, collection, uuid, newStatus);
+  change_status(dbname, collection, uuid, newStatus) {
+    return this.private_change_status(dbname, collection, uuid, newStatus);
   }
 
   private_change_status(
@@ -168,16 +183,21 @@ class api {
     client=MongoClient, 
     url=this.defaultUrl)
   {
-    client.connect(url, function(err, db) {
+    client.connect(url, async function(err, db) {
       if (err) throw err;
       let current_db = db.db(dbname);
       //set new status
-        current_db.collection(collection).updateOne(
+        await current_db.collection(collection).updateOne(
           { id: `${uuid}` },
           { $set: { urgency: `${newStatus}` }}
-        );
-      db.close();
-    });
+          )
+        let data = await current_db
+        .collection(collection).find({ id: uuid });
+        console.log(`${uuid}`)
+        console.log(`${collection}`)
+        console.log(`${db}`)
+        console.log(`${JSON.stringify(data)}`);
+        });
   }
 
   // INCREMENT STATUS AUTOMATICALLY 
@@ -212,7 +232,7 @@ class api {
         //ignore
         return;
       }
-      db.close();
+      
     });
   }
 }
