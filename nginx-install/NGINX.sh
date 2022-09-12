@@ -1,7 +1,7 @@
 #!/bin/bash
 
 DOMAIN="example.com"
-your_server_ip="45.76.127.26" 
+your_server_ip="192.168.122.1" 
 port="5000"
 sudo apt update
 sudo apt install nginx

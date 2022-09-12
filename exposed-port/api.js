@@ -1,10 +1,15 @@
 //these are the bindings that correspond to CRUD operations on 
 //the mongoDB database that we are using for the persistence layer
 const MongoClient = require('mongodb').MongoClient;
-const url = 'mongodb://localhost:27017';
-const client = new MongoClient(url);
-const dbname = 'MAIN_DATABASE';
-const collectionName = 'REQUEST_COLLECTION';
+//const url = 'mongodb://127.0.0.1:27017';
+//const uri = `mongodb://admin:re343bnm@localhost:27017/?authMechanism=DEFAULT`;
+const url = 'mongodb://10.42.0.222:27017';
+const uri = `mongodb://admin:re343bnm@10.42.0.222/?authMechanism=DEFAULT`;
+const client = new MongoClient(uri);
+const dbname = 'job_DATABASE';
+const collectionName = 'job_COLLECTION';
+
+//mongodb+srv://${username}:${password}@${clusterUrl}/?authMechanism=${authMechanism}`;
 
 class api {
   constructor(){

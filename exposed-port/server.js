@@ -29,12 +29,12 @@ app.post('/status', (req, res) => {
   );
   res.sendStatus(200);
 });
-app.post('/close', (req, res) => {
-  API.change_status(
+app.post('/close', async (req, res) => {
+  const result = await API.change_status(
     req.body.id, 
-    req.body.urgency
+    "closed"
   );
-  res.sendStatus(200);
+  res.status(200).send(result);
 });
 app.post('/update', (req, res) => {
   let result = API.update(
